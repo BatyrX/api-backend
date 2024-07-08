@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GREEN-API</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 50px;
+        }
+        input, button {
+            margin-bottom: 10px;
+        }
+        textarea {
+            width: 300px;
+            height: 150px;
+        }
+    </style>
+</head>
+<body>
+    <div>
+        <label for="idInstance">idInstance:</label>
+        <input type="text" id="idInstance">
+    </div>
+    <div>
+        <label for="apiTokenInstance">apiTokenInstance:</label>
+        <input type="text" id="apiTokenInstance">
+    </div>
+    <button onclick="getSettings()">getSettings</button>
+    <button onclick="getStateInstance()">getStateInstance</button>
+    <div>
+        <label for="phoneNumber">Phone Number:</label>
+        <input type="text" id="phoneNumber">
+    </div>
+    <div>
+        <label for="message">Message:</label>
+        <input type="text" id="message">
+    </div>
+    <button id="sendMessage">sendMessage</button>
+    <div>
+        <label for="fileUrl">File URL:</label>
+        <input type="text" id="fileUrl">
+    </div>
+    <button onclick="sendFileByUrl()">sendFileByUrl</button>
+    <h3>Response:</h3>
+    <textarea id="response" readonly></textarea>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script>
+        async function apiRequest(method, body = {}) {
+            const idInstance = document.getElementById('idInstance').value;
+            const apiTokenInstance = document.getElementById('apiTokenInstance').value;
+            body.idInstance = idInstance;
+            body.apiTokenInstance = apiTokenInstance;
+
+            const response = await fetch(`/api/${method}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(body)
+            });
+
+            const data = await response.json();
+            document.getElementById('response').innerText = JSON.stringify(data, null, 2);
+        }
+
+        function getSettings() {
+            apiRequest('getSettings');
+        }
+
+        function getStateInstance() {
+            apiRequest('getStateInstance');
+        }
+
+        document.getElementById('sendMessage').addEventListener('click', async () => {
+            const idInstance = document.getElementById('idInstance').value;
+            const apiTokenInstance = document.getElementById('apiTokenInstance').value;
+            const phoneNumber = document.getElementById('phoneNumber').value;
+            const message = document.getElementById('message').value;
+            const url = `https://7103.api.greenapi.com/waInstance${idInstance}/sendMessage/${apiTokenInstance}`;
+
+            try {
+                const response = await axios.post(url, {
+                    chatId: `${phoneNumber}@c.us`,
+                    message: message
+                });
+                document.getElementById('response').innerText = JSON.stringify(response.data, null, 2);
+            } catch (error) {
+                document.getElementById('response').innerText = JSON.stringify(error.response.data, null, 2);
+            }
+        });
+
+        function sendFileByUrl() {
+            const phoneNumber = document.getElementById('phoneNumber').value;
+            const fileUrl = document.getElementById('fileUrl').value;
+            apiRequest('sendFileByUrl', { phoneNumber, fileUrl });
+        }
+    </script>
+</body>
+</html>
